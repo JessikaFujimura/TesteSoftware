@@ -1,6 +1,5 @@
 package com.fatec.testesoftware.REQ01;
 
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,7 +10,6 @@ import org.openqa.selenium.chrome.ChromeDriver;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -30,7 +28,9 @@ public class REQ01ManterLivroTest {
         driver.manage().window().maximize();
        js = (JavascriptExecutor) driver;
        vars = new HashMap<String, Object>();
+       login();
     }
+
     @AfterEach
     public void tearDown() {
         driver.quit();
@@ -38,8 +38,7 @@ public class REQ01ManterLivroTest {
 
     @Test
     public void CT01CadastrarLivroComSucesso() {
-        login();
-        // dado que o livor não esteja cadastrado
+        // dado que o livro não esteja cadastrado
         // e o usuário insere um ISBN válido, autor válido e título válido.
         driver.findElement(By.name("isbn")).click();
         driver.findElement(By.name("isbn")).sendKeys("1222");
@@ -57,13 +56,33 @@ public class REQ01ManterLivroTest {
         assertEquals("https://ts-scel-web.herokuapp.com/sig/livros", driver.getCurrentUrl());
         assertTrue(driver.getPageSource().contains("1222"));
 
-//        mockDeletarLivro();
+        mockDeletarLivro();
     }
 
     @Test
-    public void CT02AtualizarLivroComSucesso() {
+    public void CT02ConsultarLivroComSucesso() {
+        // dado que o livro esteja cadastrado
+        mockCadastrarLivro();
+        driver.findElement(By.linkText("Voltar")).click();
+        driver.findElement(By.linkText("Livros")).click();
+        driver.findElement(By.name("isbn")).click();
+
+        // quando o usuario informar um ISBN cadastrado
+        driver.findElement(By.name("isbn")).sendKeys("1122");
+        driver.findElement(By.cssSelector(".btn:nth-child(2)")).click();
+
+
+        // entao o sistema mostra uma listagem de livro cadastrado
+        assertEquals(("Lista de livros"), driver.findElement(By.id("paginaConsulta")).getText());
+        assertTrue(driver.getPageSource().contains("1122"));
+        assertTrue(driver.getPageSource().contains("Robert C. Martin"));
+
+        mockDeletarLivro();
+    }
+
+    @Test
+    public void CT03AtualizarLivroComSucesso() {
         // dado que o livro esta cadastrado
-        login();
         mockCadastrarLivro();
 
         // quando o usuario altera o autor e título do livro
@@ -83,11 +102,14 @@ public class REQ01ManterLivroTest {
     }
 
     @Test
-    public void CT03ExcluirLivroComSucesso() {
-        login();
+    public void CT04ExcluirLivroComSucesso() {
+        // dado que o livro esta cadastrado
         mockCadastrarLivro();
+
+        // quando o usuario excluir um livro
         driver.findElement(By.linkText("Excluir")).click();
 
+        // entao o sistema remove o livro da listagem de livros cadastrados
         assertFalse(driver.getPageSource().contains("Robert C. Martin"));
         assertFalse(driver.getPageSource().contains("Arquitetura Limpa"));
     }
